@@ -4,7 +4,7 @@ namespace Snackis.Data
 {
     public class ForumDbContext : DbContext
     {
-        public ForumDbContext(DbContextOptions<ApplicationDbContext> options)
+        public ForumDbContext(DbContextOptions<ForumDbContext> options)
             : base(options)
         {
         }
