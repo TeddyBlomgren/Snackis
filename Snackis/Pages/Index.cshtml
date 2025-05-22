@@ -1,10 +1,21 @@
 ﻿@page
 @model IndexModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<SnackisUser> UserManager
+@inject SignInManager<SnackisUser> SignInManager
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Startsida";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    @if (User.Identity.IsAuthenticated && !string.IsNullOrEmpty(Model.DisplayName))
+    {
+        <h2>Välkommen tillbaka, @Model.DisplayName! 👋</h2>
+        <p>Här är några av våra senaste inlägg...</p>
+    }
+    else
+    {
+        <h2>Välkommen till Snackis!</h2>
+        <p>Logga in för att skapa eller kommentera inlägg.</p>
+    }
 </div>

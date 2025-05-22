@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Snackis.Models;
 
 namespace Snackis.Data
 {
@@ -22,7 +23,17 @@ namespace Snackis.Data
                 .HasOne(c => c.Post)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(c => c.PostId);
-        }
 
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Category>().HasData(
+                new Category { Id = 1, Name = "Spel", Description = "Allt inom spel" },
+                new Category { Id = 2, Name = "Sport", Description = "Allt om sport och träning" },
+                new Category { Id = 3, Name = "Bilar", Description = "Allt om bilar och byggen" },
+                new Category { Id = 4, Name = "Båtar", Description = "Allt om båtar och sjöliv" }
+
+                );
+        }
+        
     }
 }

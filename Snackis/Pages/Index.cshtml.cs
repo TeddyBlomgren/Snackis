@@ -1,19 +1,27 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Snackis.Data;
 
 namespace Snackis.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
-
-        public IndexModel(ILogger<IndexModel> logger)
+        private readonly UserManager<SnackisUser> _userManager;
+        public IndexModel(UserManager<SnackisUser> userManager)
         {
-            _logger = logger;
+            _userManager = userManager;
         }
-
-        public void OnGet()
+        public string? DisplayName { get; set; }
+        public async Task OnGetAsync()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+
+                DisplayName = user?.DisplayName;
+
+            }
 
         }
     }
