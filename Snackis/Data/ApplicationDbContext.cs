@@ -3,11 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Snackis.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<SnackisUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
+        public DbSet<SnackisUser> SnackisUsers { get; set; } 
     }
 }
