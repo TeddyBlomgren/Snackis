@@ -13,5 +13,8 @@ namespace Snackis.Data
         
         [PersonalData]
         public string? LastName { get; set; }
+        
+        [PersonalData]
+        public string ProfileImage { get; set; } = "/images/Anon.png";
     }
 }

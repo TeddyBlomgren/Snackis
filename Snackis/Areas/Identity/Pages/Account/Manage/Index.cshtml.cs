@@ -1,16 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
-
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Snackis.Data;
+
 namespace Snackis.Areas.Identity.Pages.Account.Manage
 {
     public class IndexModel : PageModel
@@ -18,44 +15,27 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
         private readonly UserManager<SnackisUser> _userManager;
         private readonly SignInManager<SnackisUser> _signInManager;
 
-        public IndexModel(
-            UserManager<SnackisUser> userManager,
-            SignInManager<SnackisUser> signInManager)
+        public IndexModel(UserManager<SnackisUser> userManager, SignInManager<SnackisUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string Username { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
         public string StatusMessage { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        [BindProperty]
+        public IFormFile UploadImage { get; set; }
+
+        public string CurrentImage { get; set; }
+
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -67,20 +47,21 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
-
             Input = new InputModel
             {
                 PhoneNumber = phoneNumber
             };
+
+            CurrentImage = string.IsNullOrEmpty(user.ProfileImage)
+                ? "/images/Anon.png"
+                : user.ProfileImage;
         }
 
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
 
             await LoadAsync(user);
             return Page();
@@ -90,9 +71,7 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -100,6 +79,7 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
+            // Hantera telefonnummer
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
             if (Input.PhoneNumber != phoneNumber)
             {
@@ -111,6 +91,25 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
                 }
             }
 
+            // Hantera bilduppladdning
+            if (UploadImage != null && UploadImage.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(UploadImage.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await UploadImage.CopyToAsync(stream);
+                }
+
+                user.ProfileImage = $"/uploads/{fileName}";
+            }
+          
+
+            await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
