@@ -1,4 +1,26 @@
 ﻿@page
 @model Snackis.Pages.KategorierModel
-@{
-}
+
+<h1 class="text-center my-4">Kategorier</h1>
+
+<div class="container">
+    <div class="row">
+        @foreach (var category in Model.Categories)
+        {
+            <div class="col-md-3 col-sm-6 mb-4">
+                <a href="/Kategorier/Detalj?name=@category.Name" class="text-decoration-none text-dark">
+                    <div class="card h-100">
+                        <img src="@category.Image" class="card-img-top" alt="@category.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@category.Name</h5>
+                            <p class="card-text">@category.Description</p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <span class="btn btn-primary">Se Posts</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

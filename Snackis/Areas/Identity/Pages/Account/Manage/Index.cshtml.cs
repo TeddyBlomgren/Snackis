@@ -94,10 +94,19 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
             // Hantera bilduppladdning
             if (UploadImage != null && UploadImage.Length > 0)
             {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".webp" };
+                var fileExtension = Path.GetExtension(UploadImage.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    ModelState.AddModelError("UploadImage", "Endast bildfiler (jpg, jpeg, png, bmp, webp) är tillåtna.");
+                    return Page();
+                }
+
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
                 Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(UploadImage.FileName)}";
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -107,7 +116,8 @@ namespace Snackis.Areas.Identity.Pages.Account.Manage
 
                 user.ProfileImage = $"/uploads/{fileName}";
             }
-          
+
+
 
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);

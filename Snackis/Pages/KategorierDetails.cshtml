@@ -1,0 +1,14 @@
+﻿@page
+@model Snackis.Pages.KategorierDetailsModel
+
+<h1>Inlägg i kategorin: @Model.CategoryName</h1>
+
+<ul class="list-group">
+    @foreach (var post in Model.Posts)
+    {
+        <li class="list-group-item">
+            <h5>@post.Title</h5>
+            <p>@post.Text</p>
+        </li>
+    }
+</ul>
