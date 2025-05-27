@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Snackis.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Snackis.Data
 {
-    public class ForumDbContext : DbContext
+    public class ForumDbContext : IdentityDbContext<SnackisUser>
     {
         public ForumDbContext(DbContextOptions<ForumDbContext> options)
             : base(options)
@@ -27,13 +28,36 @@ namespace Snackis.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Category>().HasData(
-                new Category { Id = 1, Name = "Spel", Description = "Allt inom spel" },
-                new Category { Id = 2, Name = "Sport", Description = "Allt om sport och träning" },
-                new Category { Id = 3, Name = "Bilar", Description = "Allt om bilar och byggen" },
-                new Category { Id = 4, Name = "Båtar", Description = "Allt om båtar och sjöliv" }
-
-                );
+           new Category
+           {
+               Id = 1,
+               Name = "Spel",
+               Description = "Allt inom spel – konsol, PC och mobil",
+               Image = "/images/EnSpelbild.jpeg"
+           },
+           new Category
+           {
+               Id = 2,
+               Name = "Sport",
+               Description = "Allt om sport och träning",
+               Image = "/images/EnSportigbild.jpeg"
+           },
+           new Category
+           {
+               Id = 3,
+               Name = "Bilar",
+               Description = "Allt om bilar och byggen",
+               Image = "/images/EnFinBil.jpeg"
+           },
+           new Category
+           {
+               Id = 4,
+               Name = "Båtar",
+               Description = "Allt om båtar och sjöliv",
+               Image = "/images/EnFinBat.jpeg"
+           }
+           );
         }
-        
+
     }
 }

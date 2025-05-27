@@ -1,0 +1,88 @@
+﻿@page
+@model Snackis.Pages.Kategorier.KategorierDetailsModel
+
+<h1>Inlägg i kategorin: @Model.name</h1>
+
+<!-- Knapp för att visa/dölja formuläret -->
+<button class="btn btn-success mb-3"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#postForm">
+    + Skapa inlägg
+</button>
+
+<!-- Collapse-formuläret -->
+<div class="collapse mb-4" id="postForm">
+    <form method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="name" />
+
+        <div class="mb-3">
+            <label asp-for="NewPost.Title" class="form-label">Titel</label>
+            <input asp-for="NewPost.Title" class="form-control" />
+            <span asp-validation-for="NewPost.Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="NewPost.Text" class="form-label">Text</label>
+            <textarea asp-for="NewPost.Text" class="form-control"></textarea>
+            <span asp-validation-for="NewPost.Text" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ImageFile" class="form-label">Bild (valfritt)</label>
+            <input asp-for="ImageFile" type="file" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Skapa inlägg</button>
+    </form>
+</div>
+
+@if (Model.Posts.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
+        @foreach (var post in Model.Posts)
+        {
+            <div class="col">
+                <a asp-page="/Kategorier/PostDetails" asp-route-id="@post.Id" style="text-decoration: none; color: inherit;">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(post.Image))
+                        {
+                            <img src="@post.Image" class="card-img-top" style="max-height: 200px; object-fit: cover;" alt="Postbild" />
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@post.Title</h5>
+                            <div class="d-flex align-items-center mb-2">
+                                @if (!string.IsNullOrEmpty(post.User?.ProfileImage))
+                                {
+                                    <img src="@post.User.ProfileImage"
+                                         style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
+                                         alt="Profilbild" />
+                                }
+                                else
+                                {
+                                    <img src="/images/default-profile.png"
+                                         style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
+                                         alt="Defaultprofil" />
+                                }
+                                <span>@post.User?.DisplayName</span>
+                            </div>
+                            <p class="card-text">@post.Text</p>
+                        </div>
+                        <div class="card-footer text-muted">
+                            @post.Date.ToString("g")
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Inga inlägg hittades i denna kategori.</p>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+}

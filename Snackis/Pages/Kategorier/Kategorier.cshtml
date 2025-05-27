@@ -1,0 +1,28 @@
+﻿@page
+@model Snackis.Pages.Kategorier.KategorierModel
+
+<h1 class="text-center my-4">Alla Kategorier</h1>
+
+<div class="container">
+    <div class="row">
+        @foreach (var cat in Model.Categories)
+        {
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card h-100">
+                    <img src="@cat.Image" class="card-img-top" alt="@cat.Name" />
+                    <div class="card-body">
+                        <h5 class="card-title">@cat.Name</h5>
+                        <p class="card-text">@cat.Description</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a asp-page="/Kategorier/KategorierDetails"
+                           asp-route-name="@cat.Name"
+                           class="btn btn-primary w-100">
+                            Se inlägg
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

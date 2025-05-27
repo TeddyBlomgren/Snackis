@@ -1,0 +1,48 @@
+﻿@page "{id:int}"
+@model Snackis.Pages.Kategorier.PostDetailsModel
+
+<h1>@Model.Post.Title</h1>
+
+<div>
+    <small>Skapad av: @Model.Post.User?.DisplayName</small> |
+    <small>@Model.Post.Date.ToString("g")</small>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Post.Image))
+{
+    <img src="@Model.Post.Image" class="img-fluid mb-2" style="max-height:200px;" />
+}
+
+<p>@Model.Post.Text</p>
+
+<h3>Kommentarer</h3>
+
+@if (Model.Post.Comments != null && Model.Post.Comments.Any())
+{
+    <ul class="list-group">
+        @foreach (var comment in Model.Post.Comments)
+        {
+            <li class="list-group-item">
+                <strong>@comment.UserName:</strong> @comment.Text
+                <small class="text-muted d-block">@comment.Date.ToString("g")</small>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Inga kommentarer än.</p>
+}
+
+<h4>Lägg till kommentar</h4>
+<form method="post">
+    <div class="mb-3">
+        <textarea asp-for="NewComment.Text" class="form-control"></textarea>
+        <span asp-validation-for="NewComment.Text" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Kommentera</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
