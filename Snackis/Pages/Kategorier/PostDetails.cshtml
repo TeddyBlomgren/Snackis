@@ -42,11 +42,12 @@ else
     <h4>Lägg till kommentar</h4>
     <form method="post" asp-route-id="@Model.Post.Id">
         <div class="mb-3">
-            <textarea asp-for="NewComment.Text" class="form-control" placeholder="Skriv din kommentar här"></textarea>
-            <span asp-validation-for="NewComment.Text" class="text-danger"></span>
+            <textarea asp-for="Input.Text" class="form-control" placeholder="Skriv din kommentar här"></textarea>
+            <span asp-validation-for="Input.Text" class="text-danger"></span>
         </div>
         <button type="submit" class="btn btn-primary">Kommentera</button>
     </form>
+
 }
 else
 {
@@ -56,3 +57,4 @@ else
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
