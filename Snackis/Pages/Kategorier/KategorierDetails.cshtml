@@ -4,12 +4,16 @@
 <h1>Inlägg i kategorin: @Model.name</h1>
 
 <!-- Knapp för att visa/dölja formuläret -->
+@if (User.Identity.IsAuthenticated)
+{
 <button class="btn btn-success mb-3"
         type="button"
         data-bs-toggle="collapse"
         data-bs-target="#postForm">
     + Skapa inlägg
 </button>
+}
+
 
 <!-- Collapse-formuläret -->
 <div class="collapse mb-4" id="postForm">

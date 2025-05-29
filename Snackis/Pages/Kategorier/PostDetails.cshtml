@@ -19,29 +19,39 @@
 
 @if (Model.Post.Comments != null && Model.Post.Comments.Any())
 {
-    <ul class="list-group">
-        @foreach (var comment in Model.Post.Comments)
+    <ul class="list-group mb-4">
+        @foreach (var comment in Model.Post.Comments.OrderByDescending(c => c.Date))
         {
             <li class="list-group-item">
-                <strong>@comment.UserName:</strong> @comment.Text
-                <small class="text-muted d-block">@comment.Date.ToString("g")</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong>@comment.DisplayName</strong>
+                    <small class="text-muted">@comment.Date.ToString("yyyy-MM-dd HH:mm")</small>
+                </div>
+                <p class="mb-0">@comment.Text</p>
             </li>
         }
     </ul>
 }
 else
 {
-    <p>Inga kommentarer än.</p>
+    <p class="text-muted">Inga kommentarer än.</p>
 }
 
-<h4>Lägg till kommentar</h4>
-<form method="post">
-    <div class="mb-3">
-        <textarea asp-for="NewComment.Text" class="form-control"></textarea>
-        <span asp-validation-for="NewComment.Text" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Kommentera</button>
-</form>
+@if (User.Identity.IsAuthenticated)
+{
+    <h4>Lägg till kommentar</h4>
+    <form method="post" asp-route-id="@Model.Post.Id">
+        <div class="mb-3">
+            <textarea asp-for="NewComment.Text" class="form-control" placeholder="Skriv din kommentar här"></textarea>
+            <span asp-validation-for="NewComment.Text" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Kommentera</button>
+    </form>
+}
+else
+{
+    <p><a asp-page="/Account/Login">Logga in</a> för att kunna kommentera.</p>
+}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

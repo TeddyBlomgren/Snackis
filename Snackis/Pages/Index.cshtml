@@ -8,17 +8,41 @@
 }
 
 <div class="container mt-4">
-    @if (User.Identity.IsAuthenticated && !string.IsNullOrEmpty(Model.DisplayName))
-    {
+@if (User.Identity.IsAuthenticated && !string.IsNullOrEmpty(Model.DisplayName))
+{
         <h2>Välkommen tillbaka, @Model.DisplayName! 👋</h2>
-    }
-    else
-    {
+}
+else
+{
         <h2>Välkommen till Snackis!</h2>
         <p>Logga in för att skapa eller kommentera inlägg.</p>
-    }
-    <div class="row">
-        <div class="col-md-8">
-            <h3>Senaste inlägg</h3>
+}
+    <div class="container my-5">
+        <h3 class="text-center mb-4">Här ser du de senaste 5 inläggen</h3>
+
+        <div class="row justify-content-center">
+            @foreach (var post in Model.LatestPosts)
+            {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm border-0 hover-shadow">
+                        <a asp-page="/Kategorier/PostDetails" asp-route-id="@post.Id" class="text-decoration-none text-dark">
+                            <img src="@(!string.IsNullOrEmpty(post.Image) ? post.Image : "/images/placeholder.png")"
+                                 class="card-img-top" style="height:180px; object-fit:cover;" alt="Post image">
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate">@post.Title</h5>
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="@post.User.ProfileImage" class="rounded-circle me-2" style="width:30px; height:30px; object-fit:cover;">
+                                    <strong>@post.User.DisplayName</strong>
+                                </div>
+                                <p class="card-text text-truncate">@post.Text</p>
+                            </div>
+                            <div class="card-footer text-muted small">
+                                @post.Date.ToString("yyyy-MM-dd HH:mm")
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
-</div>
+    </div>
+
