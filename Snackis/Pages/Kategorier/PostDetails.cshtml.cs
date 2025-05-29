@@ -43,33 +43,20 @@ namespace Snackis.Pages.Kategorier
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            Console.WriteLine("DEBUG: OnPostAsync startar, id = " + id);
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                Console.WriteLine("DEBUG: Ingen användare hittades, Unauthorized.");
                 return Unauthorized();
             }
 
             var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == id);
             if (post == null)
             {
-                Console.WriteLine("DEBUG: Inget inlägg hittades med id = " + id);
                 return NotFound();
             }
 
-            Console.WriteLine("DEBUG: ModelState.IsValid = " + ModelState.IsValid);
             if (!ModelState.IsValid)
             {
-                foreach (var kvp in ModelState)
-                {
-                    foreach (var error in kvp.Value.Errors)
-                    {
-                        Console.WriteLine($"DEBUG: ModelState-fel i {kvp.Key}: {error.ErrorMessage}");
-                    }
-                }
-
                 Post = post;
                 return Page();
             }
@@ -87,7 +74,6 @@ namespace Snackis.Pages.Kategorier
             _context.Comments.Add(newComment);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine("DEBUG: Kommentar sparad och redirect körs.");
             return RedirectToPage("./PostDetails", new { id = id });
         }
     }
