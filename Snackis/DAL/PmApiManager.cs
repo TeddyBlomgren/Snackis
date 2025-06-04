@@ -28,7 +28,7 @@ namespace Snackis.DAL
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = BaseAdress;
-                HttpResponseMessage response = await client.GetAsync($"api/PM/outbox/{userId}");
+                HttpResponseMessage response = await client.GetAsync($"api/PM/sent/{userId}");
                 if (response.IsSuccessStatusCode)
                 {
                     string responseString = await response.Content.ReadAsStringAsync();
@@ -37,6 +37,7 @@ namespace Snackis.DAL
                 return outbox;
             }
         }
+
         public static async Task<PM> GetMessageAsync(int id)
         {
             PM message = new();
@@ -80,5 +81,22 @@ namespace Snackis.DAL
                 await client.PutAsync($"api/PM/markasread/{id}", null);
             }
         }
+        public static async Task<List<PM>> GetConversationAsync(string userAId, string userBId)
+        {
+            List<PM> conversation = new List<PM>();
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = BaseAdress;
+                HttpResponseMessage response =
+                    await client.GetAsync($"api/PM/conversation/{userAId}/{userBId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    conversation = JsonSerializer.Deserialize<List<PM>>(responseString);
+                }
+            }
+            return conversation;
+        }
+
     }
 }

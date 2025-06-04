@@ -1,0 +1,42 @@
+﻿@page
+@model UserRolesModel
+
+@{
+    ViewData["Title"] = "Hantera användarroller";
+}
+
+<h2>Hantera användarroller</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Nuvarande roller</th>
+            <th>Ändra roll</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model.Users)
+        {
+            <tr>
+                <td>@u.Email</td>
+                <td>@string.Join(", ", u.Roles)</td>
+                <td>
+                    <form method="post" class="form-inline">
+                        <input type="hidden" asp-for="SelectedUserId" value="@u.UserId" />
+
+                        <select asp-for="SelectedRole" class="form-control form-control-sm me-2">
+                            <option value=""> Välj roll </option>
+                            @foreach (var r in Model.AllRoles)
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        </select>
+
+                        <button type="submit" class="btn btn-sm btn-primary">Spara</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

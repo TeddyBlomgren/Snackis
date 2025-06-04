@@ -1,0 +1,95 @@
+﻿@page
+@model Snackis.Pages.Admin.ReportsModel
+@{
+    ViewData["Title"] = "Alla rapporter";
+}
+
+<h2>Alla rapporter</h2>
+
+@if (Model.AllReports == null || Model.AllReports.Count == 0)
+{
+    <p class="text-muted">Inga rapporter inlämnade ännu.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Rapport-ID</th>
+                <th>Rapporterare</th>
+                <th>Tidpunkt</th>
+                <th>Typ</th>
+                <th>Inlägg/Kommentar</th>
+                <th>Status</th>
+                <th>Hantera</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.AllReports)
+            {
+                <tr class="@(item.IsHandled ? "table-secondary" : "")">
+                    <td>@item.Id</td>
+                    <td>@item.ReporterDisplayName</td>
+                    <td>@item.TimeCreated.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        @if (item.PostId.HasValue)
+                        {
+                            <span class="badge bg-secondary">Inlägg</span>
+                        }
+                        else if (item.CommentId.HasValue)
+                        {
+                            <span class="badge bg-info">Kommentar</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Okänd</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.PostId.HasValue)
+                        {
+                            <a asp-page="/Kategorier/PostDetails"
+                               asp-route-id="@item.PostId" target="_blank">
+                                @item.PostTitle
+                            </a>
+                        }
+                        else if (item.CommentId.HasValue)
+                        {
+                            <a asp-page="/Kategorier/PostDetails"
+                               asp-route-id="@item.PostId" target="_blank">
+                                Kommentar: @item.CommentText
+                            </a>
+                        }
+                    </td>
+                    <td>
+                        @if (item.IsHandled)
+                        {
+                            <span class="badge bg-success">Hanterad</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Ohanterad</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!item.IsHandled)
+                        {
+                            <form method="post" asp-page-handler="MarkHandled" class="d-inline">
+                                <input type="hidden" name="reportId" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-success me-1">
+                                    Godkänn
+                                </button>
+                            </form>
+                        }
+                        <form method="post" asp-page-handler="DeleteItem" class="d-inline">
+                            <input type="hidden" name="reportId" value="@item.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                Ta bort
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
