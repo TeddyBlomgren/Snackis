@@ -1,15 +1,17 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Snackis.Data;
 using Snackis.Models;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Snackis.ViewModels;
 
 namespace Snackis.Pages.Kategorier
 {
+    [Authorize]
     public class PostDetailsModel : PageModel
     {
         private readonly ForumDbContext _context;
@@ -21,6 +23,7 @@ namespace Snackis.Pages.Kategorier
             _userManager = userManager;
         }
 
+        [BindProperty]
         public Post Post { get; set; }
 
         [BindProperty]
@@ -43,30 +46,33 @@ namespace Snackis.Pages.Kategorier
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
-            var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == id);
-            if (post == null)
+            var postFromDb = await _context.Posts
+                .Include(p => p.Comments)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (postFromDb == null)
             {
                 return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                Post = post;
+                Post = postFromDb;
                 return Page();
             }
 
             var newComment = new Comment
             {
                 PostId = id,
-                UserId = user.Id,
-                UserName = user.UserName,
-                DisplayName = user.DisplayName,
+                UserId = currentUser.Id,
+                UserName = currentUser.UserName,
+                DisplayName = currentUser.DisplayName,
                 Date = DateTime.Now,
                 Text = Input.Text
             };
@@ -74,7 +80,62 @@ namespace Snackis.Pages.Kategorier
             _context.Comments.Add(newComment);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./PostDetails", new { id = id });
+            return RedirectToPage("./PostDetails", new { id });
+        }
+
+        // Rapportera inlägg
+        public async Task<IActionResult> OnPostReportPostAsync()
+        {
+
+            if (Post == null || Post.Id == 0)
+            {
+                return BadRequest();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Forbid();
+            }
+
+            var report = new Report
+            {
+                ReporterId = currentUser.Id,
+                PostId = Post.Id,
+                TimeCreated = DateTime.UtcNow,
+            };
+
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage("./PostDetails", new { id = Post.Id });
+        }
+
+        // rapportera kommentar
+        public async Task<IActionResult> OnPostReportCommentAsync(int commentId)
+        {
+            if (commentId == 0)
+            {
+                return BadRequest();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Forbid();
+            }
+
+            var report = new Report
+            {
+                ReporterId = currentUser.Id,
+                CommentId = commentId,
+                TimeCreated = DateTime.UtcNow,
+            };
+
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage("./PostDetails", new { id = Post.Id });
         }
     }
 }

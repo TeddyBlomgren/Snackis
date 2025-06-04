@@ -13,6 +13,7 @@ namespace Snackis.Data
         public DbSet<Snackis.Models.Post> Posts { get; set; }
         public DbSet<Snackis.Models.Comment> Comments { get; set; }
         public DbSet<Snackis.Models.Category> Categories { get; set; }
+        public DbSet<Snackis.Models.Report> Reports { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

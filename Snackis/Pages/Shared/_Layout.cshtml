@@ -26,8 +26,36 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Kategorier/Kategorier">Kategorier</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Message">Meddelanden</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
+
+                        <ul class="navbar-nav">
+                            @if (User.IsInRole("MainAdmin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-page="/Admin/AdminRoles">
+                                        Hantera Roller
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("MainAdmin") || User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-page="/Admin/Admin">
+                                        AdminSida
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+
+
+
+
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

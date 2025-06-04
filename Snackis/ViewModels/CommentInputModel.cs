@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Snackis.Models
+namespace Snackis.ViewModels
 {
     public class CommentInputModel
     {

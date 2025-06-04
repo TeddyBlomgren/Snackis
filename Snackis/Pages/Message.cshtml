@@ -1,0 +1,84 @@
+﻿@page
+@model Snackis.Pages.MessageModel
+@using Microsoft.AspNetCore.Identity
+
+<h1 class="mb-4">Inkorg</h1>
+
+@if (Model.ChatContacts != null && Model.ChatContacts.Any())
+{
+    <ul class="list-group mb-4">
+        @foreach (var contact in Model.ChatContacts)
+        {
+            <li class="list-group-item">
+                <a asp-page="/Message" asp-route-userId="@contact.Id" class="text-decoration-none">
+                    <i class="bi bi-chat-dots me-2"></i>Chatt med <strong>@contact.DisplayName</strong>
+                </a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <div class="alert alert-info">Du har inga konversationer ännu.</div>
+}
+
+<hr />
+
+<h2 class="mt-4 mb-3">Skicka nytt PM</h2>
+<form method="post" class="mb-5">
+    <div class="mb-3">
+        <label asp-for="RecipientId" class="form-label">Välj mottagare</label>
+        <select asp-for="RecipientId" class="form-select" required>
+            <option value="">-- Välj användare --</option>
+            @foreach (var user in Model.AllUsers)
+            {
+                <option value="@user.Id">@user.DisplayName</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MessageText" class="form-label">Meddelande</label>
+        <textarea asp-for="MessageText" class="form-control" placeholder="Skriv nytt PM här..." rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Skicka nytt PM</button>
+</form>
+
+@if (Model.Contact != null)
+{
+    <h2 class="mb-3">Chatt med <span class="text-primary">@Model.Contact.DisplayName</span></h2>
+
+    <div class="card mb-3">
+        <div class="card-body overflow-auto" style="max-height: 400px;">
+            @foreach (var message in Model.Messages)
+            {
+                
+                    var isMine = message.SenderId == Model.CurrentUserId;
+                    var bubbleClass = isMine
+                    ? "bg-white text-dark border border-secondary ms-auto"
+                    : "bg-light text-dark me-auto";
+
+                    var senderLabel = isMine ? "Du" : Model.Contact.DisplayName;
+                
+                <div class="d-flex @bubbleClass mb-2 p-2 rounded" style="max-width: 75%;">
+                    <div>
+                        <span class="badge @(isMine ? "bg-secondary text-white" : "bg-secondary text-white") mb-1">
+                            @senderLabel
+                        </span>
+                        <p class="mb-1">@message.Content</p>
+                        <small class="text-muted">@message.SentAt.ToString("g")</small>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <!-- Formulär för att svara i samma tråd -->
+    <form method="post">
+        <input type="hidden" name="RecipientId" value="@Model.Contact.Id" />
+        <div class="mb-3">
+            <textarea name="MessageText" class="form-control" placeholder="Skriv ditt svar här..." rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Skicka svar</button>
+    </form>
+}

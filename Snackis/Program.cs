@@ -10,7 +10,6 @@ namespace Snackis
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -19,14 +18,16 @@ namespace Snackis
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<SnackisUser>(options => options.SignIn.RequireConfirmedAccount = true)
+
+            builder.Services
+                .AddDefaultIdentity<SnackisUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()               
                 .AddEntityFrameworkStores<ForumDbContext>();
 
             builder.Services.AddRazorPages();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -39,14 +40,24 @@ namespace Snackis
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
-            app.UseAuthentication();  // <--- LÄGG TILL DENNA!
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapRazorPages();
 
+            // rollerna direkt före app.Run()
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                string[] roles = { "MainAdmin", "Admin", "User" };
+
+                foreach (var role in roles)
+                {
+                    if (!roleMgr.RoleExistsAsync(role).Result)
+                        roleMgr.CreateAsync(new IdentityRole(role)).Wait();
+                }
+            }
             app.Run();
         }
     }

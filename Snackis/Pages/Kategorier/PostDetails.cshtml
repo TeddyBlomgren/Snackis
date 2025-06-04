@@ -1,19 +1,43 @@
 ﻿@page "{id:int}"
 @model Snackis.Pages.Kategorier.PostDetailsModel
+@{
+    ViewData["Title"] = Model.Post?.Title ?? "Post";
+}
 
 <h1>@Model.Post.Title</h1>
 
-<div>
+<div class="mb-2">
     <small>Skapad av: @Model.Post.User?.DisplayName</small> |
     <small>@Model.Post.Date.ToString("g")</small>
 </div>
 
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="mb-3">
+        <form method="post" asp-page-handler="ReportPost" class="d-inline">
+            <input type="hidden" asp-for="Post.Id" />
+            <button type="submit" class="btn btn-sm btn-outline-danger">Rapportera</button>
+        </form>
+
+        <a asp-page="/Message"
+           asp-route-recipientId="@Model.Post.UserId"
+           class="btn btn-sm btn-outline-primary">
+            Skicka PM
+        </a>
+    </div>
+}
+
 @if (!string.IsNullOrEmpty(Model.Post.Image))
 {
-    <img src="@Model.Post.Image" class="img-fluid mb-2" style="max-height:200px;" />
+    <img src="@Model.Post.Image"
+         class="img-fluid mb-2"
+         style="max-height:200px; object-fit:cover;"
+         alt="Bild för @Model.Post.Title" />
 }
 
 <p>@Model.Post.Text</p>
+
+<hr />
 
 <h3>Kommentarer</h3>
 
@@ -24,8 +48,30 @@
         {
             <li class="list-group-item">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <strong>@comment.DisplayName</strong>
-                    <small class="text-muted">@comment.Date.ToString("yyyy-MM-dd HH:mm")</small>
+                    <div>
+                        <strong>@comment.DisplayName</strong>
+                        <small class="text-muted">@comment.Date.ToString("yyyy-MM-dd HH:mm")</small>
+                    </div>
+                    <div>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                           
+                            <form method="post" asp-page-handler="ReportComment" class="d-inline">
+                                <input type="hidden" name="commentId" value="@comment.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger me-1">
+                                    Rapportera
+                                </button>
+                            </form>
+
+                          <a asp-page="/Message"
+                           asp-route-recipientId="@comment.UserId"
+                           class="btn btn-sm btn-outline-primary">
+                            Skicka PM
+                              </a>
+
+
+                        }
+                    </div>
                 </div>
                 <p class="mb-0">@comment.Text</p>
             </li>
@@ -40,21 +86,21 @@ else
 @if (User.Identity.IsAuthenticated)
 {
     <h4>Lägg till kommentar</h4>
-    <form method="post" asp-route-id="@Model.Post.Id">
+    <form method="post">
         <div class="mb-3">
-            <textarea asp-for="Input.Text" class="form-control" placeholder="Skriv din kommentar här"></textarea>
+            <textarea asp-for="Input.Text"
+                      class="form-control"
+                      placeholder="Skriv din kommentar här"></textarea>
             <span asp-validation-for="Input.Text" class="text-danger"></span>
         </div>
         <button type="submit" class="btn btn-primary">Kommentera</button>
     </form>
-
 }
 else
 {
-    <p><a asp-page="/Account/Login">Logga in</a> för att kunna kommentera.</p>
+    <p><a asp-area="Identity" asp-page="/Account/Login">Logga in</a> för att kommentera.</p>
 }
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
