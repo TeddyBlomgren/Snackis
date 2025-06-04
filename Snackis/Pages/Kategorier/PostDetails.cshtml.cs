@@ -11,7 +11,7 @@ using Snackis.ViewModels;
 
 namespace Snackis.Pages.Kategorier
 {
-    [Authorize]
+    
     public class PostDetailsModel : PageModel
     {
         private readonly ForumDbContext _context;

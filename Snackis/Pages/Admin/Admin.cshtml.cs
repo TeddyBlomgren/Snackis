@@ -88,7 +88,6 @@ namespace Snackis.Pages.Admin
                 _db.Comments.Remove(report.Comment);
             }
 
-            // Ta bort rapporten
             _db.Reports.Remove(report);
             await _db.SaveChangesAsync();
 

@@ -46,7 +46,6 @@ namespace Snackis
 
             app.MapRazorPages();
 
-            // rollerna direkt före app.Run()
             using (var scope = app.Services.CreateScope())
             {
                 var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
