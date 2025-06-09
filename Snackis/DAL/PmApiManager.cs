@@ -5,7 +5,7 @@ namespace Snackis.DAL
 {
     public class PmApiManager
     {
-        private static readonly Uri BaseAdress = new Uri("https://localhost:44329/");
+        private static readonly Uri BaseAdress = new Uri("https://webbappapi-bhe7b3cjccb2h9aw.swedencentral-01.azurewebsites.net");
 
         public static async Task<List<PM>> GetInboxAsync(string userId)
         {
