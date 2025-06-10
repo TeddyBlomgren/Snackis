@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,7 +11,6 @@ using Snackis.ViewModels;
 
 namespace Snackis.Pages.Kategorier
 {
-    
     public class PostDetailsModel : PageModel
     {
         private readonly ForumDbContext _context;
@@ -32,38 +31,25 @@ namespace Snackis.Pages.Kategorier
         public async Task<IActionResult> OnGetAsync(int id)
         {
             Post = await _context.Posts
-                .Include(p => p.User)
-                .Include(p => p.Comments)
-                .FirstOrDefaultAsync(p => p.Id == id);
+               .Include(p => p.User)
+               .Include(p => p.Comments)
+               .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (Post == null)
-            {
-                return NotFound();
-            }
-
+            if (Post == null) return NotFound();
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Forbid();
-            }
-
-            var postFromDb = await _context.Posts
-                .Include(p => p.Comments)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (postFromDb == null)
-            {
-                return NotFound();
-            }
+            if (currentUser == null) return Forbid();
 
             if (!ModelState.IsValid)
             {
-                Post = postFromDb;
+                Post = await _context.Posts
+                   .Include(p => p.User)
+                   .Include(p => p.Comments.OrderByDescending(c => c.Date))
+                   .FirstOrDefaultAsync(p => p.Id == id);
                 return Page();
             }
 
@@ -83,59 +69,42 @@ namespace Snackis.Pages.Kategorier
             return RedirectToPage("./PostDetails", new { id });
         }
 
-        // Rapportera inlägg
-        public async Task<IActionResult> OnPostReportPostAsync()
+        public async Task<IActionResult> OnPostReportPostAsync(int id)
         {
-
-            if (Post == null || Post.Id == 0)
-            {
-                return BadRequest();
-            }
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null) return NotFound();
 
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Forbid();
-            }
+            if (currentUser == null) return Forbid();
 
-            var report = new Report
+            _context.Reports.Add(new Report
             {
                 ReporterId = currentUser.Id,
-                PostId = Post.Id,
-                TimeCreated = DateTime.UtcNow,
-            };
-
-            _context.Reports.Add(report);
+                PostId = post.Id,
+                TimeCreated = DateTime.UtcNow
+            });
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./PostDetails", new { id = Post.Id });
+            return RedirectToPage("./PostDetails", new { id = post.Id });
         }
 
-        // rapportera kommentar
-        public async Task<IActionResult> OnPostReportCommentAsync(int commentId)
+        public async Task<IActionResult> OnPostReportCommentAsync(int id, int commentId)
         {
-            if (commentId == 0)
-            {
-                return BadRequest();
-            }
+            var comment = await _context.Comments.FindAsync(commentId);
+            if (comment == null) return NotFound();
 
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return Forbid();
-            }
+            if (currentUser == null) return Forbid();
 
-            var report = new Report
+            _context.Reports.Add(new Report
             {
                 ReporterId = currentUser.Id,
-                CommentId = commentId,
-                TimeCreated = DateTime.UtcNow,
-            };
-
-            _context.Reports.Add(report);
+                CommentId = comment.Id,
+                TimeCreated = DateTime.UtcNow
+            });
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./PostDetails", new { id = Post.Id });
+            return RedirectToPage("./PostDetails", new { id });
         }
     }
 }

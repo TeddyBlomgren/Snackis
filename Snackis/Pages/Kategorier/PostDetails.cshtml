@@ -5,7 +5,6 @@
 }
 
 <h1>@Model.Post.Title</h1>
-
 <div class="mb-2">
     <small>Skapad av: @Model.Post.User?.DisplayName</small> |
     <small>@Model.Post.Date.ToString("g")</small>
@@ -14,16 +13,15 @@
 @if (User.Identity.IsAuthenticated)
 {
     <div class="mb-3">
-        <form method="post" asp-page-handler="ReportPost" class="d-inline">
-            <input type="hidden" asp-for="Post.Id" />
+        <form method="post"
+              asp-page-handler="ReportPost"
+              asp-route-id="@Model.Post.Id"
+              class="d-inline">
             <button type="submit" class="btn btn-sm btn-outline-danger">Rapportera</button>
         </form>
-
         <a asp-page="/Message"
            asp-route-recipientId="@Model.Post.UserId"
-           class="btn btn-sm btn-outline-primary">
-            Skicka PM
-        </a>
+           class="btn btn-sm btn-outline-primary">Skicka PM</a>
     </div>
 }
 
@@ -36,11 +34,9 @@
 }
 
 <p>@Model.Post.Text</p>
-
 <hr />
 
 <h3>Kommentarer</h3>
-
 @if (Model.Post.Comments != null && Model.Post.Comments.Any())
 {
     <ul class="list-group mb-4">
@@ -55,21 +51,16 @@
                     <div>
                         @if (User.Identity.IsAuthenticated)
                         {
-                           
-                            <form method="post" asp-page-handler="ReportComment" class="d-inline">
-                                <input type="hidden" name="commentId" value="@comment.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger me-1">
-                                    Rapportera
-                                </button>
+                            <form method="post"
+                                  asp-page-handler="ReportComment"
+                                  asp-route-id="@Model.Post.Id"
+                                  asp-route-commentId="@comment.Id"
+                                  class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger me-1">Rapportera</button>
                             </form>
-
-                          <a asp-page="/Message"
-                           asp-route-recipientId="@comment.UserId"
-                           class="btn btn-sm btn-outline-primary">
-                            Skicka PM
-                              </a>
-
-
+                            <a asp-page="/Message"
+                               asp-route-recipientId="@comment.UserId"
+                               class="btn btn-sm btn-outline-primary">Skicka PM</a>
                         }
                     </div>
                 </div>
@@ -86,15 +77,17 @@ else
 @if (User.Identity.IsAuthenticated)
 {
     <h4>Lägg till kommentar</h4>
-    <form method="post">
-        <div class="mb-3">
-            <textarea asp-for="Input.Text"
-                      class="form-control"
-                      placeholder="Skriv din kommentar här"></textarea>
-            <span asp-validation-for="Input.Text" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">Kommentera</button>
-    </form>
+    <form method="post" asp-route-id="@Model.Post.Id">
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <textarea asp-for="Input.Text"
+                  class="form-control"
+                  placeholder="Skriv din kommentar här"></textarea>
+        <span asp-validation-for="Input.Text" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Kommentera</button>
+</form>
+
 }
 else
 {
