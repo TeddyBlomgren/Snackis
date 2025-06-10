@@ -31,6 +31,7 @@ namespace Snackis
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
+                app.UseDeveloperExceptionPage();
             }
             else
             {
@@ -58,6 +59,7 @@ namespace Snackis
                 }
             }
             app.Run();
+
         }
     }
 }

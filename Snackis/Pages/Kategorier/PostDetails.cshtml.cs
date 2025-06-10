@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Pages/Kategorier/PostDetails.cshtml.cs
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,100 +13,108 @@ using Snackis.ViewModels;
 
 namespace Snackis.Pages.Kategorier
 {
+    [Authorize]
     public class PostDetailsModel : PageModel
     {
-        private readonly ForumDbContext _context;
-        private readonly UserManager<SnackisUser> _userManager;
+        private readonly ForumDbContext _db;
+        private readonly UserManager<SnackisUser> _users;
 
-        public PostDetailsModel(ForumDbContext context, UserManager<SnackisUser> userManager)
+        private static readonly TimeZoneInfo SwedishZone =
+            TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+
+        public PostDetailsModel(ForumDbContext db, UserManager<SnackisUser> users)
         {
-            _context = context;
-            _userManager = userManager;
+            _db = db;
+            _users = users;
         }
 
-        [BindProperty]
-        public Post Post { get; set; }
+        public Post Post { get; private set; }
 
         [BindProperty]
         public CommentInputModel Input { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            Post = await _context.Posts
-               .Include(p => p.User)
-               .Include(p => p.Comments)
-               .FirstOrDefaultAsync(p => p.Id == id);
+            Post = await _db.Posts
+                .Include(p => p.User)
+                .Include(p => p.Comments.OrderByDescending(c => c.Date))
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (Post == null) return NotFound();
+            if (Post == null)
+                return NotFound();
+
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int id)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Forbid();
-
             if (!ModelState.IsValid)
             {
-                Post = await _context.Posts
-                   .Include(p => p.User)
-                   .Include(p => p.Comments.OrderByDescending(c => c.Date))
-                   .FirstOrDefaultAsync(p => p.Id == id);
+                await OnGetAsync(id);
                 return Page();
             }
 
-            var newComment = new Comment
+            var user = await _users.GetUserAsync(User)
+                       ?? throw new InvalidOperationException("Ej inloggad");
+
+
+            var commentTime = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                SwedishZone
+            );
+
+            _db.Comments.Add(new Comment
             {
                 PostId = id,
-                UserId = currentUser.Id,
-                UserName = currentUser.UserName,
-                DisplayName = currentUser.DisplayName,
-                Date = DateTime.Now,
+                UserId = user.Id,
+                UserName = user.UserName,
+                DisplayName = user.DisplayName ?? user.UserName,
+                Date = commentTime,
                 Text = Input.Text
-            };
+            });
 
-            _context.Comments.Add(newComment);
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage("./PostDetails", new { id });
+            await _db.SaveChangesAsync();
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostReportPostAsync(int id)
         {
-            var post = await _context.Posts.FindAsync(id);
-            if (post == null) return NotFound();
+            var user = await _users.GetUserAsync(User)
+                       ?? throw new InvalidOperationException("Ej inloggad");
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Forbid();
+            var reportTime = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                SwedishZone
+            );
 
-            _context.Reports.Add(new Report
+            _db.Reports.Add(new Report
             {
-                ReporterId = currentUser.Id,
-                PostId = post.Id,
-                TimeCreated = DateTime.UtcNow
+                ReporterId = user.Id,
+                PostId = id,
+                TimeCreated = reportTime
             });
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage("./PostDetails", new { id = post.Id });
+            await _db.SaveChangesAsync();
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostReportCommentAsync(int id, int commentId)
         {
-            var comment = await _context.Comments.FindAsync(commentId);
-            if (comment == null) return NotFound();
+            var user = await _users.GetUserAsync(User)
+                       ?? throw new InvalidOperationException("Ej inloggad");
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Forbid();
+            var reportTime = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                SwedishZone
+            );
 
-            _context.Reports.Add(new Report
+            _db.Reports.Add(new Report
             {
-                ReporterId = currentUser.Id,
-                CommentId = comment.Id,
-                TimeCreated = DateTime.UtcNow
+                ReporterId = user.Id,
+                CommentId = commentId,
+                TimeCreated = reportTime
             });
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage("./PostDetails", new { id });
+            await _db.SaveChangesAsync();
+            return RedirectToPage(new { id });
         }
     }
 }

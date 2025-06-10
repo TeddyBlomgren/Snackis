@@ -1,70 +1,58 @@
-﻿@page "{id:int}"
+﻿@* Pages/Kategorier/PostDetails.cshtml *@
+@page "{id:int}"
 @model Snackis.Pages.Kategorier.PostDetailsModel
-@{
-    ViewData["Title"] = Model.Post?.Title ?? "Post";
-}
 
 <h1>@Model.Post.Title</h1>
-<div class="mb-2">
-    <small>Skapad av: @Model.Post.User?.DisplayName</small> |
-    <small>@Model.Post.Date.ToString("g")</small>
-</div>
-
-@if (User.Identity.IsAuthenticated)
-{
-    <div class="mb-3">
-        <form method="post"
-              asp-page-handler="ReportPost"
-              asp-route-id="@Model.Post.Id"
-              class="d-inline">
-            <button type="submit" class="btn btn-sm btn-outline-danger">Rapportera</button>
-        </form>
-        <a asp-page="/Message"
-           asp-route-recipientId="@Model.Post.UserId"
-           class="btn btn-sm btn-outline-primary">Skicka PM</a>
-    </div>
-}
 
 @if (!string.IsNullOrEmpty(Model.Post.Image))
 {
     <img src="@Model.Post.Image"
-         class="img-fluid mb-2"
-         style="max-height:200px; object-fit:cover;"
-         alt="Bild för @Model.Post.Title" />
+         alt="Bild för @Model.Post.Title"
+         class="img-fluid mb-3"
+         style="max-height:200px; object-fit:cover;" />
 }
 
-<p>@Model.Post.Text</p>
+<small>
+    Av <strong>@Model.Post.User.DisplayName</strong> den 
+    @Model.Post.Date.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+</small>
+
+<p class="mt-3">@Model.Post.Text</p>
 <hr />
 
-<h3>Kommentarer</h3>
-@if (Model.Post.Comments != null && Model.Post.Comments.Any())
+<h3>Kommentarer (@Model.Post.Comments.Count)</h3>
+
+@if (Model.Post.Comments.Any())
 {
     <ul class="list-group mb-4">
-        @foreach (var comment in Model.Post.Comments.OrderByDescending(c => c.Date))
+        @foreach (var c in Model.Post.Comments)
         {
             <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <strong>@comment.DisplayName</strong>
-                        <small class="text-muted">@comment.Date.ToString("yyyy-MM-dd HH:mm")</small>
+                        <strong>@c.DisplayName</strong>
+                        <small class="text-muted ms-2">
+                            @c.Date.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                        </small>
                     </div>
                     <div>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <form method="post"
-                                  asp-page-handler="ReportComment"
-                                  asp-route-id="@Model.Post.Id"
-                                  asp-route-commentId="@comment.Id"
-                                  class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-outline-danger me-1">Rapportera</button>
-                            </form>
-                            <a asp-page="/Message"
-                               asp-route-recipientId="@comment.UserId"
-                               class="btn btn-sm btn-outline-primary">Skicka PM</a>
-                        }
+                        <form method="post"
+                              asp-page-handler="ReportComment"
+                              asp-route-id="@Model.Post.Id"
+                              asp-route-commentId="@c.Id"
+                              class="d-inline me-1">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                Rapportera
+                            </button>
+                        </form>
+                        <a asp-page="/Message"
+                           asp-route-recipientId="@c.UserId"
+                           class="btn btn-sm btn-outline-primary">
+                            Skicka PM
+                        </a>
                     </div>
                 </div>
-                <p class="mb-0">@comment.Text</p>
+                <p class="mt-2 mb-0">@c.Text</p>
             </li>
         }
     </ul>
@@ -77,22 +65,28 @@ else
 @if (User.Identity.IsAuthenticated)
 {
     <h4>Lägg till kommentar</h4>
+    <div asp-validation-summary="All" class="text-danger mb-2"></div>
     <form method="post" asp-route-id="@Model.Post.Id">
-    @Html.AntiForgeryToken()
-    <div class="mb-3">
-        <textarea asp-for="Input.Text"
-                  class="form-control"
-                  placeholder="Skriv din kommentar här"></textarea>
-        <span asp-validation-for="Input.Text" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Kommentera</button>
-</form>
+        <div class="mb-3">
+            <textarea asp-for="Input.Text"
+                      class="form-control"
+                      placeholder="Skriv din kommentar här"
+                      rows="3"></textarea>
+            <span asp-validation-for="Input.Text" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Kommentera</button>
+    </form>
+}
 
-}
-else
-{
-    <p><a asp-area="Identity" asp-page="/Account/Login">Logga in</a> för att kommentera.</p>
-}
+<hr />
+
+<form method="post"
+      asp-page-handler="ReportPost"
+      asp-route-id="@Model.Post.Id">
+    <button type="submit" class="btn btn-outline-danger">
+        Rapportera inlägg
+    </button>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
