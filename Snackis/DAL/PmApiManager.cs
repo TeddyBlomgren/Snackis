@@ -65,22 +65,6 @@ namespace Snackis.DAL
 
             }
         }
-        public static async Task DeleteMessageAsync(int id)
-        {
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = BaseAdress;
-                await client.DeleteAsync($"api/PM/{id}");
-            }
-        }
-        public static async Task MarkAsReadAsync(int id)
-        {
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = BaseAdress;
-                await client.PutAsync($"api/PM/markasread/{id}", null);
-            }
-        }
         public static async Task<List<PM>> GetConversationAsync(string userAId, string userBId)
         {
             List<PM> conversation = new List<PM>();
