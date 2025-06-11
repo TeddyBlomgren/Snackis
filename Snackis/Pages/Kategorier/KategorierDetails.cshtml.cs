@@ -18,6 +18,9 @@ namespace Snackis.Pages.Kategorier
         private readonly ForumDbContext _context;
         private readonly UserManager<SnackisUser> _userManager;
 
+        private static readonly TimeZoneInfo SwedishZone =
+            TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+
         public KategorierDetailsModel(ForumDbContext context, UserManager<SnackisUser> userManager)
         {
             _context = context;
@@ -65,7 +68,8 @@ namespace Snackis.Pages.Kategorier
             }
 
             NewPost.CategoryId = cat.Id;
-            NewPost.Date = DateTime.Now;
+            NewPost.Date = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, SwedishZone);
+
             NewPost.UserId = user.Id;
             NewPost.UserName = user.UserName;
 
@@ -89,4 +93,5 @@ namespace Snackis.Pages.Kategorier
             return RedirectToPage("./KategorierDetails", new { name = name });
         }
     }
+
 }

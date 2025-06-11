@@ -18,7 +18,6 @@ namespace Snackis.Pages.Kategorier
         }
         public void OnGet()
         {
-            // Hämta alla kategorier från databasen
             Categories = _context.Categories
                  .OrderBy(c => c.Name)
                  .ToList();

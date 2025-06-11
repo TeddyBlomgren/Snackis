@@ -36,9 +36,8 @@ namespace Snackis.Pages.Kategorier
 
         public async Task<IActionResult> OnPostAsync()
         {
-            Console.WriteLine(">>> OnPostAsync kördes.");
 
-            // 1) Om en fil har laddats upp, spara den OCH sätt Category.Image direkt
+
             if (ImageFile != null && ImageFile.Length > 0)
             {
                 var fileName = Path.GetFileName(ImageFile.FileName);

@@ -1,20 +1,23 @@
 ﻿@page
 @model Snackis.Pages.Kategorier.KategorierDetailsModel
 
+@using System.Globalization
+@{
+    var swedishTimeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+}
+
 <h1>Inlägg i kategorin: @Model.name</h1>
 
 @if (User.Identity.IsAuthenticated)
 {
-<button class="btn btn-success mb-3"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#postForm">
-    + Skapa inlägg
-</button>
+    <button class="btn btn-success mb-3"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#postForm">
+        + Skapa inlägg
+    </button>
 }
 
-
-<!-- Collapse-formuläret -->
 <div class="collapse mb-4" id="postForm">
     <form method="post" enctype="multipart/form-data">
         <input type="hidden" asp-for="name" />
@@ -72,7 +75,10 @@
                             <p class="card-text">@post.Text</p>
                         </div>
                         <div class="card-footer text-muted">
-                            @post.Date.ToString("g")
+                            @{
+                                var localTime = TimeZoneInfo.ConvertTimeFromUtc(post.Date.ToUniversalTime(), swedishTimeZone);
+                            }
+                            @localTime.ToString("g", CultureInfo.GetCultureInfo("sv-SE"))
                         </div>
                     </div>
                 </a>
