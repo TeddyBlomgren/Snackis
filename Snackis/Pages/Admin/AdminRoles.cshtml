@@ -10,6 +10,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>Användarnamn</th>
             <th>Email</th>
             <th>Nuvarande roller</th>
             <th>Ändra roll</th>
@@ -19,13 +20,14 @@
         @foreach (var u in Model.Users)
         {
             <tr>
-                <td>@u.Email</td>
+                <td>@u.User.DisplayName</td>
+                <td>@u.User.Email</td>
                 <td>@string.Join(", ", u.Roles)</td>
                 <td>
                     <form method="post" class="form-inline">
-                        <input type="hidden" asp-for="SelectedUserId" value="@u.UserId" />
+                        <input type="hidden" name="SelectedUserId" value="@u.User.Id" />
 
-                        <select asp-for="SelectedRole" class="form-control form-control-sm me-2">
+                        <select name="SelectedRole" class="form-control form-control-sm me-2">
                             <option value=""> Välj roll </option>
                             @foreach (var r in Model.AllRoles)
                             {

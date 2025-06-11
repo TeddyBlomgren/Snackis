@@ -1,6 +1,6 @@
-﻿// Pages/Kategorier/PostDetails.cshtml.cs
-using System;
+﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +13,6 @@ using Snackis.ViewModels;
 
 namespace Snackis.Pages.Kategorier
 {
-    [Authorize]
     public class PostDetailsModel : PageModel
     {
         private readonly ForumDbContext _db;
@@ -30,6 +29,8 @@ namespace Snackis.Pages.Kategorier
 
         public Post Post { get; private set; }
 
+        public Dictionary<string, string> CommentProfileImages { get; private set; } = new();
+
         [BindProperty]
         public CommentInputModel Input { get; set; }
 
@@ -37,15 +38,29 @@ namespace Snackis.Pages.Kategorier
         {
             Post = await _db.Posts
                 .Include(p => p.User)
-                .Include(p => p.Comments.OrderByDescending(c => c.Date))
+                .Include(p => p.Comments)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (Post == null)
                 return NotFound();
 
+            Post.Comments = Post.Comments
+                .OrderByDescending(c => c.Date)
+                .ToList();
+
+            var userIds = Post.Comments.Select(c => c.UserId).Distinct();
+            var images = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.ProfileImage })
+                .ToListAsync();
+
+            CommentProfileImages = images
+                .ToDictionary(x => x.Id, x => x.ProfileImage ?? "/images/Anon.png");
+
             return Page();
         }
 
+        [Authorize]
         public async Task<IActionResult> OnPostAsync(int id)
         {
             if (!ModelState.IsValid)
@@ -56,7 +71,6 @@ namespace Snackis.Pages.Kategorier
 
             var user = await _users.GetUserAsync(User)
                        ?? throw new InvalidOperationException("Ej inloggad");
-
 
             var commentTime = TimeZoneInfo.ConvertTimeFromUtc(
                 DateTime.UtcNow,
@@ -70,13 +84,14 @@ namespace Snackis.Pages.Kategorier
                 UserName = user.UserName,
                 DisplayName = user.DisplayName ?? user.UserName,
                 Date = commentTime,
-                Text = Input.Text
+                Text = Input.Text,
             });
 
             await _db.SaveChangesAsync();
             return RedirectToPage(new { id });
         }
 
+        [Authorize]
         public async Task<IActionResult> OnPostReportPostAsync(int id)
         {
             var user = await _users.GetUserAsync(User)
@@ -97,6 +112,7 @@ namespace Snackis.Pages.Kategorier
             return RedirectToPage(new { id });
         }
 
+        [Authorize]
         public async Task<IActionResult> OnPostReportCommentAsync(int id, int commentId)
         {
             var user = await _users.GetUserAsync(User)

@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Snackis.Data;
-using Snackis.ViewModels;
 
-
+[Authorize(Roles = "Admin,MainAdmin")]
 public class UserRolesModel : PageModel
 {
     private readonly UserManager<SnackisUser> _userManager;
@@ -20,7 +19,7 @@ public class UserRolesModel : PageModel
         _roleManager = roleManager;
     }
 
-    public List<UserRoles> Users { get; set; }
+    public List<(SnackisUser User, IList<string> Roles)> Users { get; set; }
     public List<string> AllRoles { get; set; }
 
     [BindProperty]
@@ -32,39 +31,29 @@ public class UserRolesModel : PageModel
     public async Task OnGetAsync()
     {
         AllRoles = await _roleManager.Roles
-                            .Select(r => r.Name)
-                            .ToListAsync();
+            .Select(r => r.Name)
+            .ToListAsync();
 
-        var userList = await _userManager.Users
-                              .ToListAsync();
+        Users = new List<(SnackisUser, IList<string>)>();
 
-        Users = new List<UserRoles>();
-        foreach (var u in userList) 
+        var userList = await _userManager.Users.ToListAsync();
+        foreach (var user in userList)
         {
-            var roles = await _userManager.GetRolesAsync(u);
-            Users.Add(new UserRoles
-            {
-                UserId = u.Id,
-                Email = u.Email,
-                Roles = roles
-            });
+            var roles = await _userManager.GetRolesAsync(user);
+            Users.Add((user, roles));
         }
     }
 
-
-
     public async Task<IActionResult> OnPostAsync()
     {
-        if (SelectedUserId == null || SelectedRole == null)
-            return RedirectToPage(); 
+        if (string.IsNullOrWhiteSpace(SelectedUserId) || string.IsNullOrWhiteSpace(SelectedRole))
+            return RedirectToPage();
 
         var user = await _userManager.FindByIdAsync(SelectedUserId);
         if (user == null) return NotFound();
 
-
         var currentRoles = await _userManager.GetRolesAsync(user);
         await _userManager.RemoveFromRolesAsync(user, currentRoles);
-
 
         await _userManager.AddToRoleAsync(user, SelectedRole);
 
